@@ -178,6 +178,8 @@ class ActModelGenerateRoomsPatch
     static void ForceAncientToSpawn(ActModel __instance)
     {
         var rooms = Traverse.Create(__instance).Field<RoomSet>("_rooms").Value;
+        if (!rooms.HasAncient) return;
+        
         var rngChosenAncient = rooms.Ancient;
         var ancientToSpawn = CustomContentDictionary.CustomAncients.Find(a => a.ShouldForceSpawn(__instance, rngChosenAncient));
 
