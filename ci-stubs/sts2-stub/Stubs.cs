@@ -20,6 +20,11 @@ namespace MegaCrit.Sts2.Core.Systems
         public void OnBattleVictory() { }
         public void OnBattleStart() { }
     }
+
+    public static class RunManager
+    {
+        public static bool IsCoop { get; }
+    }
 }
 
 namespace MegaCrit.Sts2.Core.Modding

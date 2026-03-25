@@ -8,7 +8,7 @@ namespace GoldPenaltyMod.GoldPenaltyModCode.Patches;
 /// <summary>
 /// Harmony patch that triggers gold redistribution when a combat encounter ends in victory.
 ///
-/// After a battle is won in multiplayer, this patch:
+/// Only active in multiplayer (co-op) mode. After a battle is won, this patch:
 /// 1. Identifies the player who dealt the least total damage
 /// 2. Identifies the player who dealt the most total damage
 /// 3. Deducts 10 gold from the lowest-damage player
@@ -22,11 +22,16 @@ namespace GoldPenaltyMod.GoldPenaltyModCode.Patches;
 public static class BattleEndPatch
 {
     /// <summary>
-    /// Postfix patch that executes after a battle victory to redistribute gold
-    /// and display UI notifications.
+    /// Postfix patch that executes after a battle victory to redistribute gold.
+    /// Skips entirely if not in multiplayer (co-op) mode.
     /// </summary>
     public static void Postfix()
     {
+        if (!RunManager.IsCoop)
+        {
+            return;
+        }
+
         var damageData = DamageTracker.GetAllDamage();
 
         // Need at least 2 players to compare
