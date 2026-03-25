@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <AssemblyName>sts2</AssemblyName>
+    <RootNamespace>Sts2Stub</RootNamespace>
+    <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);MSB3270</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GodotSharp" Version="4.5.1" />
+  </ItemGroup>
+</Project>
