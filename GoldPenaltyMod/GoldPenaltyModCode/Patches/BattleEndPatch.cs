@@ -39,7 +39,7 @@ public static class BattleEndPatch
         // Need at least 2 players to compare
         if (damageData.Count < 2)
         {
-            MainFile.Logger.Log("Skipping gold transfer: fewer than 2 players tracked.");
+            MainFile.Logger.Info("Skipping gold transfer: fewer than 2 players tracked.");
             DamageTracker.Reset();
             return;
         }
@@ -50,7 +50,7 @@ public static class BattleEndPatch
         // If the same player or either is null, skip
         if (lowestPlayer == null || highestPlayer == null || lowestPlayer == highestPlayer)
         {
-            MainFile.Logger.Log("Skipping gold transfer: same player or no valid players found.");
+            MainFile.Logger.Info("Skipping gold transfer: same player or no valid players found.");
             DamageTracker.Reset();
             return;
         }
@@ -61,7 +61,7 @@ public static class BattleEndPatch
         // If everyone dealt the same damage, no penalty
         if (lowestDamage == highestDamage)
         {
-            MainFile.Logger.Log("Skipping gold transfer: all players dealt equal damage.");
+            MainFile.Logger.Info("Skipping gold transfer: all players dealt equal damage.");
             DamageTracker.Reset();
             return;
         }
@@ -76,7 +76,7 @@ public static class BattleEndPatch
             lowestPlayer.Gold -= transferAmount;
             highestPlayer.Gold += transferAmount;
 
-            MainFile.Logger.Log(
+            MainFile.Logger.Info(
                 $"Gold transfer: {lowestPlayer.Name} (damage: {lowestDamage}) lost {transferAmount} gold. " +
                 $"{highestPlayer.Name} (damage: {highestDamage}) gained {transferAmount} gold.");
 
@@ -98,7 +98,7 @@ public static class BattleEndPatch
         }
         else
         {
-            MainFile.Logger.Log(
+            MainFile.Logger.Info(
                 $"No gold transferred: {lowestPlayer.Name} has no gold to lose.");
         }
 

@@ -33,12 +33,12 @@ public static class RewardScreenPatch
         var rewardContainer = __instance.RewardListContainer;
         if (rewardContainer == null)
         {
-            MainFile.Logger.Log("RewardScreen: RewardListContainer not found, cannot add gold transfer entries.");
+            MainFile.Logger.Info("RewardScreen: RewardListContainer not found, cannot add gold transfer entries.");
             GoldTransferInfo.Clear();
             return;
         }
 
-        MainFile.Logger.Log(
+        MainFile.Logger.Info(
             $"Adding gold transfer reward entries: {transfer.LoserName} -{transfer.TransferAmount}G, " +
             $"{transfer.WinnerName} +{transfer.TransferAmount}G");
 
