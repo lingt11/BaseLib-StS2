@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GodotSharp" Version="4.5.1" />
+    <!-- GodotSharp is not needed for stubs; game types that extend Godot nodes
+         are not referenced by the mod's Harmony patches. -->
   </ItemGroup>
 </Project>

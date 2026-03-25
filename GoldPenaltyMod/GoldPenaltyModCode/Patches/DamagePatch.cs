@@ -1,6 +1,7 @@
 using HarmonyLib;
-using MegaCrit.Sts2.Core.Entities.Characters;
-using MegaCrit.Sts2.Core.Systems;
+using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.Hooks;
+using MegaCrit.Sts2.Core.Runs;
 
 namespace GoldPenaltyMod.GoldPenaltyModCode.Patches;
 
@@ -8,28 +9,30 @@ namespace GoldPenaltyMod.GoldPenaltyModCode.Patches;
 /// Harmony patch that intercepts damage dealt to enemies during combat.
 /// Records the damage each player character deals for end-of-combat gold redistribution.
 ///
-/// Targets CharacterBattle.TakeDamage to capture all instances where an enemy takes damage
-/// from a player character, including card attacks, power triggers, and relic effects.
-/// Only active in multiplayer (co-op) mode.
+/// Targets Hook.AfterDamageGiven to capture all instances where damage is dealt,
+/// including card attacks, power triggers, and relic effects.
+/// Only active in multiplayer mode.
 /// </summary>
-[HarmonyPatch(typeof(CharacterBattle), nameof(CharacterBattle.TakeDamage))]
+[HarmonyPatch(typeof(Hook), nameof(Hook.AfterDamageGiven))]
 public static class DamagePatch
 {
     /// <summary>
-    /// Postfix patch that records damage dealt after TakeDamage completes.
+    /// Postfix patch that records damage dealt after AfterDamageGiven completes.
     /// Only records damage from player characters in multiplayer mode.
     /// </summary>
-    /// <param name="__instance">The character that took the damage (the target).</param>
-    /// <param name="amount">The damage amount that was dealt.</param>
-    /// <param name="attacker">The character that dealt the damage (the source).</param>
-    public static void Postfix(CharacterBattle __instance, int amount, CharacterBattle attacker)
+    /// <param name="dealer">The creature that dealt the damage (the source).</param>
+    /// <param name="results">The damage result containing actual damage amounts.</param>
+    public static void Postfix(Creature? dealer, DamageResult results)
     {
-        if (!RunManager.IsCoop) return;
-        if (attacker == null || amount <= 0) return;
+        if (RunManager.Instance.IsSinglePlayerOrFakeMultiplayer) return;
+        if (dealer == null || !dealer.IsPlayer) return;
 
-        // Only track damage dealt by player characters, not by enemies
-        if (!attacker.IsPlayer) return;
+        var player = dealer.Player;
+        if (player == null) return;
 
-        DamageTracker.RecordDamage(attacker, amount);
+        int damage = results.UnblockedDamage;
+        if (damage <= 0) return;
+
+        DamageTracker.RecordDamage(player, damage);
     }
 }

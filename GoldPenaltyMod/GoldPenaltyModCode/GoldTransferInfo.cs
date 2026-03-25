@@ -1,10 +1,10 @@
-using MegaCrit.Sts2.Core.Entities.Characters;
+using MegaCrit.Sts2.Core.Entities.Players;
 
 namespace GoldPenaltyMod.GoldPenaltyModCode;
 
 /// <summary>
-/// Stores the result of a gold transfer so the reward screen patch can display it.
-/// Populated by <see cref="Patches.BattleEndPatch"/> and consumed by <see cref="Patches.RewardScreenPatch"/>.
+/// Stores the result of a gold transfer so the UI can display it.
+/// Populated by <see cref="Patches.BattleEndPatch"/> and consumed by the gold transfer banner.
 /// </summary>
 public static class GoldTransferInfo
 {
@@ -13,8 +13,8 @@ public static class GoldTransferInfo
     /// </summary>
     public sealed class TransferResult
     {
-        public required CharacterBattle Loser { get; init; }
-        public required CharacterBattle Winner { get; init; }
+        public required Player Loser { get; init; }
+        public required Player Winner { get; init; }
         public required string LoserName { get; init; }
         public required string WinnerName { get; init; }
         public required int TransferAmount { get; init; }
@@ -23,7 +23,7 @@ public static class GoldTransferInfo
     }
 
     /// <summary>
-    /// The pending transfer result to display on the reward screen, or null if none.
+    /// The pending transfer result to display, or null if none.
     /// </summary>
     public static TransferResult? Pending { get; set; }
 
