@@ -1,0 +1,11 @@
+{
+  "id": "GoldPenaltyMod",
+  "name": "Gold Penalty Mod",
+  "author": "lingt11",
+  "description": "In multiplayer mode, after each battle the player with the lowest damage output loses 10 gold, which is awarded to the player with the highest damage output. Includes UI notifications for gold changes.",
+  "version": "v1.0.0",
+  "has_pck": true,
+  "has_dll": true,
+  "dependencies": ["BaseLib"],
+  "affects_gameplay": true
+}

@@ -11,3 +11,6 @@ build/BaseLib.pck
 *.user
 *.import
 .vscode/*
+ci-game-dlls/
+ci-stubs/**/bin/
+ci-stubs/**/obj/
