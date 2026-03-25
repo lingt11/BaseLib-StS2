@@ -91,14 +91,36 @@ namespace MegaCrit.Sts2.Core.Modding
 
 namespace MegaCrit.Sts2.Core.Logging
 {
+    public enum LogLevel
+    {
+        VeryDebug,
+        Load,
+        Debug,
+        Info,
+        Warn,
+        Error
+    }
+
     public enum LogType
     {
-        Generic
+        Generic,
+        Network,
+        Actions,
+        GameSync,
+        VisualSync
     }
 
     public class Logger
     {
-        public Logger(string id, LogType type) { }
-        public void Info(string message) { }
+        public string? Context { get; set; }
+        public Logger(string? context, LogType logType) { }
+        public void LogMessage(LogLevel level, string text, int skipFrames) { }
+        public void LogMessage(LogLevel level, LogType type, string text, int skipFrames) { }
+        public void Load(string text, int skipFrames = 1) { }
+        public void Debug(string text, int skipFrames = 1) { }
+        public void VeryDebug(string text, int skipFrames = 1) { }
+        public void Info(string text, int skipFrames = 1) { }
+        public void Warn(string text, int skipFrames = 1) { }
+        public void Error(string text, int skipFrames = 1) { }
     }
 }
