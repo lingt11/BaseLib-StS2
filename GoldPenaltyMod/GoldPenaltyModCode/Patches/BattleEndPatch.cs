@@ -72,8 +72,8 @@ public static class BattleEndPatch
 
         if (transferAmount > 0)
         {
-            string lowestName = lowestPlayer.Creature.Name;
-            string highestName = highestPlayer.Creature.Name;
+            string lowestName = lowestPlayer.Creature?.Name ?? "Unknown";
+            string highestName = highestPlayer.Creature?.Name ?? "Unknown";
 
             // Apply gold changes immediately
             lowestPlayer.Gold -= transferAmount;
@@ -106,7 +106,7 @@ public static class BattleEndPatch
         else
         {
             MainFile.Logger.Info(
-                $"No gold transferred: {lowestPlayer.Creature.Name} has no gold to lose.");
+                $"No gold transferred: {lowestPlayer.Creature?.Name ?? "Unknown"} has no gold to lose.");
         }
 
         DamageTracker.Reset();
