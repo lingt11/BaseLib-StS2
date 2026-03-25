@@ -15,6 +15,6 @@ public partial class MainFile : Node
     {
         Harmony harmony = new(ModId);
         harmony.PatchAll();
-        Logger.Log("GoldPenaltyMod initialized: lowest damage player loses 10 gold to highest damage player after each battle.");
+        Logger.Info("GoldPenaltyMod initialized: lowest damage player loses 10 gold to highest damage player after each battle.");
     }
 }

@@ -99,6 +99,6 @@ namespace MegaCrit.Sts2.Core.Logging
     public class Logger
     {
         public Logger(string id, LogType type) { }
-        public void Log(string message) { }
+        public void Info(string message) { }
     }
 }

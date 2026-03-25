@@ -20,6 +20,6 @@ public static class BattleStartPatch
         if (!RunManager.IsCoop) return;
 
         DamageTracker.Reset();
-        MainFile.Logger.Log("New co-op battle started. Damage tracking reset.");
+        MainFile.Logger.Info("New co-op battle started. Damage tracking reset.");
     }
 }
