@@ -1,35 +1,35 @@
 using Godot;
 using HarmonyLib;
 using GoldPenaltyMod.GoldPenaltyModCode.UI;
-using MegaCrit.Sts2.Core.Systems;
+using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Runs;
 
 namespace GoldPenaltyMod.GoldPenaltyModCode.Patches;
 
 /// <summary>
 /// Harmony patch that triggers gold redistribution when a combat encounter ends in victory.
 ///
-/// Only active in multiplayer (co-op) mode. After a battle is won, this patch:
+/// Only active in multiplayer mode. After a battle is won, this patch:
 /// 1. Identifies the player who dealt the least total damage
 /// 2. Identifies the player who dealt the most total damage
 /// 3. Deducts 10 gold from the lowest-damage player
 /// 4. Awards 10 gold to the highest-damage player
-/// 5. Stores transfer data so the reward screen displays the changes alongside other rewards
-/// 6. Shows floating text above each player as immediate feedback
+/// 5. Stores transfer data and shows a banner notification
 ///
 /// If only one player participated or if all players dealt equal damage, no gold is transferred.
 /// If the lowest-damage player has fewer than 10 gold, only their available gold is transferred.
 /// </summary>
-[HarmonyPatch(typeof(BattleSystem), nameof(BattleSystem.OnBattleVictory))]
+[HarmonyPatch(typeof(CombatManager), nameof(CombatManager.EndCombatInternal))]
 public static class BattleEndPatch
 {
     /// <summary>
-    /// Postfix patch that executes after a battle victory to redistribute gold.
-    /// Skips entirely if not in multiplayer (co-op) mode.
-    /// Gold changes are applied immediately and stored for display on the reward screen.
+    /// Prefix patch that executes before EndCombatInternal to redistribute gold.
+    /// Runs as a Prefix so that damage data is still available (history is cleared during EndCombatInternal).
+    /// Skips entirely if not in multiplayer mode.
     /// </summary>
-    public static void Postfix()
+    public static void Prefix()
     {
-        if (!RunManager.IsCoop)
+        if (RunManager.Instance.IsSinglePlayerOrFakeMultiplayer)
         {
             return;
         }
@@ -72,34 +72,41 @@ public static class BattleEndPatch
 
         if (transferAmount > 0)
         {
+            string lowestName = lowestPlayer.Creature.Name;
+            string highestName = highestPlayer.Creature.Name;
+
             // Apply gold changes immediately
             lowestPlayer.Gold -= transferAmount;
             highestPlayer.Gold += transferAmount;
 
             MainFile.Logger.Info(
-                $"Gold transfer: {lowestPlayer.Name} (damage: {lowestDamage}) lost {transferAmount} gold. " +
-                $"{highestPlayer.Name} (damage: {highestDamage}) gained {transferAmount} gold.");
+                $"Gold transfer: {lowestName} (damage: {lowestDamage}) lost {transferAmount} gold. " +
+                $"{highestName} (damage: {highestDamage}) gained {transferAmount} gold.");
 
-            // Store transfer data for the reward screen to display
+            // Store transfer data for display
             GoldTransferInfo.Pending = new GoldTransferInfo.TransferResult
             {
                 Loser = lowestPlayer,
                 Winner = highestPlayer,
-                LoserName = lowestPlayer.Name,
-                WinnerName = highestPlayer.Name,
+                LoserName = lowestName,
+                WinnerName = highestName,
                 TransferAmount = transferAmount,
                 LoserDamage = lowestDamage,
                 WinnerDamage = highestDamage
             };
 
-            // Show floating text above each player as immediate feedback
-            GoldFloatingText.Show(lowestPlayer, -transferAmount, lowestPlayer.Name);
-            GoldFloatingText.Show(highestPlayer, transferAmount, highestPlayer.Name);
+            // Show banner notification via the scene tree
+            var sceneTree = Engine.GetMainLoop() as SceneTree;
+            if (sceneTree?.Root != null)
+            {
+                GoldTransferBanner.Show(sceneTree.Root, lowestName, highestName,
+                    transferAmount, lowestDamage, highestDamage);
+            }
         }
         else
         {
             MainFile.Logger.Info(
-                $"No gold transferred: {lowestPlayer.Name} has no gold to lose.");
+                $"No gold transferred: {lowestPlayer.Creature.Name} has no gold to lose.");
         }
 
         DamageTracker.Reset();

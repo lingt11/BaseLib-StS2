@@ -1,4 +1,4 @@
-using MegaCrit.Sts2.Core.Entities.Characters;
+using MegaCrit.Sts2.Core.Entities.Players;
 
 namespace GoldPenaltyMod.GoldPenaltyModCode;
 
@@ -14,9 +14,9 @@ public static class DamageTracker
     public const int GoldPenalty = 10;
 
     /// <summary>
-    /// Maps each player's CharacterBattle instance to their cumulative damage dealt in the current combat.
+    /// Maps each player instance to their cumulative damage dealt in the current combat.
     /// </summary>
-    private static readonly Dictionary<CharacterBattle, int> DamageDealtByPlayer = new();
+    private static readonly Dictionary<Player, int> DamageDealtByPlayer = new();
 
     /// <summary>
     /// Resets all tracked damage. Should be called at the start of each combat.
@@ -27,17 +27,17 @@ public static class DamageTracker
     }
 
     /// <summary>
-    /// Records damage dealt by a specific player character.
+    /// Records damage dealt by a specific player.
     /// </summary>
-    /// <param name="attacker">The player character who dealt the damage.</param>
+    /// <param name="player">The player who dealt the damage.</param>
     /// <param name="damage">The amount of damage dealt.</param>
-    public static void RecordDamage(CharacterBattle attacker, int damage)
+    public static void RecordDamage(Player player, int damage)
     {
         if (damage <= 0) return;
 
-        if (!DamageDealtByPlayer.TryAdd(attacker, damage))
+        if (!DamageDealtByPlayer.TryAdd(player, damage))
         {
-            DamageDealtByPlayer[attacker] += damage;
+            DamageDealtByPlayer[player] += damage;
         }
     }
 
@@ -45,7 +45,7 @@ public static class DamageTracker
     /// Gets a snapshot of all tracked player damage data.
     /// </summary>
     /// <returns>A read-only dictionary mapping players to their total damage.</returns>
-    public static IReadOnlyDictionary<CharacterBattle, int> GetAllDamage()
+    public static IReadOnlyDictionary<Player, int> GetAllDamage()
     {
         return DamageDealtByPlayer;
     }
@@ -53,9 +53,9 @@ public static class DamageTracker
     /// <summary>
     /// Gets the player who dealt the most damage in the current combat, or null if no data.
     /// </summary>
-    public static CharacterBattle? GetHighestDamagePlayer()
+    public static Player? GetHighestDamagePlayer()
     {
-        CharacterBattle? best = null;
+        Player? best = null;
         int maxDamage = -1;
 
         foreach (var (player, damage) in DamageDealtByPlayer)
@@ -73,9 +73,9 @@ public static class DamageTracker
     /// <summary>
     /// Gets the player who dealt the least damage in the current combat, or null if no data.
     /// </summary>
-    public static CharacterBattle? GetLowestDamagePlayer()
+    public static Player? GetLowestDamagePlayer()
     {
-        CharacterBattle? worst = null;
+        Player? worst = null;
         int minDamage = int.MaxValue;
 
         foreach (var (player, damage) in DamageDealtByPlayer)

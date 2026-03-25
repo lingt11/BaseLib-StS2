@@ -1,83 +1,107 @@
 // Minimal stub types from sts2.dll required to compile STS2 mods.
 // These stubs are used only for CI compilation and do not contain game logic.
 
-namespace MegaCrit.Sts2.Core.Entities.Characters
+namespace MegaCrit.Sts2.Core.Entities.Creatures
 {
-    public partial class CharacterBattle : Godot.Node
+    public class Creature
+    {
+        public bool IsPlayer { get; }
+        public bool IsMonster { get; }
+        public MegaCrit.Sts2.Core.Entities.Players.Player? Player { get; }
+        public string Name { get; } = string.Empty;
+        public MegaCrit.Sts2.Core.Combat.CombatState? CombatState { get; set; }
+
+        public DamageResult LoseHpInternal(decimal amount, MegaCrit.Sts2.Core.ValueProps.ValueProp props)
+            => new DamageResult();
+    }
+
+    public class DamageResult
+    {
+        public int UnblockedDamage { get; set; }
+        public int BlockedDamage { get; set; }
+        public int OverkillDamage { get; set; }
+        public int TotalDamage => UnblockedDamage + BlockedDamage;
+    }
+}
+
+namespace MegaCrit.Sts2.Core.Entities.Players
+{
+    public class Player
     {
         public int Gold { get; set; }
-        public new string Name { get; } = string.Empty;
-        public bool IsPlayer { get; }
-
-        public void TakeDamage(int amount, CharacterBattle attacker) { }
+        public MegaCrit.Sts2.Core.Entities.Creatures.Creature Creature { get; } = new();
     }
 }
 
-namespace MegaCrit.Sts2.Core.Systems
+namespace MegaCrit.Sts2.Core.Combat
 {
-    public class BattleSystem
+    public class CombatManager
     {
-        public void OnBattleVictory() { }
-        public void OnBattleStart() { }
+        public static CombatManager Instance { get; } = new();
+        public bool IsInProgress { get; }
+        public bool IsEnding { get; }
+
+        public void SetUpCombat(CombatState state) { }
+        public System.Threading.Tasks.Task EndCombatInternal()
+            => System.Threading.Tasks.Task.CompletedTask;
     }
 
-    public static class RunManager
+    public class CombatState
     {
-        public static bool IsCoop { get; }
+        public System.Collections.Generic.IReadOnlyList<MegaCrit.Sts2.Core.Entities.Players.Player> Players { get; }
+            = System.Array.Empty<MegaCrit.Sts2.Core.Entities.Players.Player>();
+    }
+
+    public enum CombatSide
+    {
+        Player,
+        Enemy
     }
 }
 
-namespace MegaCrit.Sts2.Core.Nodes.Screens.Rewards
+namespace MegaCrit.Sts2.Core.Runs
 {
-    /// <summary>
-    /// The post-battle reward screen that displays earned rewards.
-    /// </summary>
-    public partial class RewardScreen : Godot.Control
+    public class RunManager
     {
-        /// <summary>
-        /// Container that holds the list of reward items.
-        /// </summary>
-        public Godot.VBoxContainer RewardListContainer { get; }
-
-        /// <summary>
-        /// Opens the reward screen and populates rewards.
-        /// </summary>
-        public void Open() { }
+        public static RunManager Instance { get; } = new();
+        public bool IsSinglePlayerOrFakeMultiplayer { get; }
     }
+}
 
-    /// <summary>
-    /// Base class for individual reward items displayed in the reward screen.
-    /// </summary>
-    public partial class RewardItem : Godot.HBoxContainer
+namespace MegaCrit.Sts2.Core.Hooks
+{
+    public static class Hook
     {
-        /// <summary>
-        /// Icon displayed next to the reward text.
-        /// </summary>
-        public Godot.TextureRect IconRect { get; }
-
-        /// <summary>
-        /// Label showing the reward description.
-        /// </summary>
-        public Godot.Label RewardLabel { get; }
-
-        /// <summary>
-        /// Tooltip text displayed on hover.
-        /// </summary>
-        public new string TooltipText { get; set; } = string.Empty;
+        public static System.Threading.Tasks.Task AfterDamageGiven(
+            MegaCrit.Sts2.Core.Context.PlayerChoiceContext choiceContext,
+            MegaCrit.Sts2.Core.Combat.CombatState combatState,
+            MegaCrit.Sts2.Core.Entities.Creatures.Creature? dealer,
+            MegaCrit.Sts2.Core.Entities.Creatures.DamageResult results,
+            MegaCrit.Sts2.Core.ValueProps.ValueProp props,
+            MegaCrit.Sts2.Core.Entities.Creatures.Creature target,
+            MegaCrit.Sts2.Core.Entities.Cards.CardModel? cardSource)
+            => System.Threading.Tasks.Task.CompletedTask;
     }
+}
 
-    /// <summary>
-    /// A reward item representing a gold amount.
-    /// </summary>
-    public class GoldRewardItem : RewardItem
+namespace MegaCrit.Sts2.Core.ValueProps
+{
+    [System.Flags]
+    public enum ValueProp
     {
-        /// <summary>
-        /// The amount of gold this reward gives.
-        /// </summary>
-        public int GoldAmount { get; set; }
-
-        public GoldRewardItem() { }
+        None = 0,
+        Unblockable = 1,
     }
+}
+
+namespace MegaCrit.Sts2.Core.Context
+{
+    public class PlayerChoiceContext { }
+}
+
+namespace MegaCrit.Sts2.Core.Entities.Cards
+{
+    public class CardModel { }
 }
 
 namespace MegaCrit.Sts2.Core.Modding
