@@ -27,6 +27,59 @@ namespace MegaCrit.Sts2.Core.Systems
     }
 }
 
+namespace MegaCrit.Sts2.Core.Nodes.Screens.Rewards
+{
+    /// <summary>
+    /// The post-battle reward screen that displays earned rewards.
+    /// </summary>
+    public partial class RewardScreen : Godot.Control
+    {
+        /// <summary>
+        /// Container that holds the list of reward items.
+        /// </summary>
+        public Godot.VBoxContainer RewardListContainer { get; }
+
+        /// <summary>
+        /// Opens the reward screen and populates rewards.
+        /// </summary>
+        public void Open() { }
+    }
+
+    /// <summary>
+    /// Base class for individual reward items displayed in the reward screen.
+    /// </summary>
+    public partial class RewardItem : Godot.HBoxContainer
+    {
+        /// <summary>
+        /// Icon displayed next to the reward text.
+        /// </summary>
+        public Godot.TextureRect IconRect { get; }
+
+        /// <summary>
+        /// Label showing the reward description.
+        /// </summary>
+        public Godot.Label RewardLabel { get; }
+
+        /// <summary>
+        /// Tooltip text displayed on hover.
+        /// </summary>
+        public new string TooltipText { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// A reward item representing a gold amount.
+    /// </summary>
+    public class GoldRewardItem : RewardItem
+    {
+        /// <summary>
+        /// The amount of gold this reward gives.
+        /// </summary>
+        public int GoldAmount { get; set; }
+
+        public GoldRewardItem() { }
+    }
+}
+
 namespace MegaCrit.Sts2.Core.Modding
 {
     [System.AttributeUsage(System.AttributeTargets.Class)]

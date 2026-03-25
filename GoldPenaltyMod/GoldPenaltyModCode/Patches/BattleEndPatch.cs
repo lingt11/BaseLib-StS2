@@ -13,7 +13,8 @@ namespace GoldPenaltyMod.GoldPenaltyModCode.Patches;
 /// 2. Identifies the player who dealt the most total damage
 /// 3. Deducts 10 gold from the lowest-damage player
 /// 4. Awards 10 gold to the highest-damage player
-/// 5. Displays floating text and a summary banner notification
+/// 5. Stores transfer data so the reward screen displays the changes alongside other rewards
+/// 6. Shows floating text above each player as immediate feedback
 ///
 /// If only one player participated or if all players dealt equal damage, no gold is transferred.
 /// If the lowest-damage player has fewer than 10 gold, only their available gold is transferred.
@@ -24,6 +25,7 @@ public static class BattleEndPatch
     /// <summary>
     /// Postfix patch that executes after a battle victory to redistribute gold.
     /// Skips entirely if not in multiplayer (co-op) mode.
+    /// Gold changes are applied immediately and stored for display on the reward screen.
     /// </summary>
     public static void Postfix()
     {
@@ -66,10 +68,11 @@ public static class BattleEndPatch
 
         // Calculate actual transfer amount (cannot take more gold than the player has)
         int currentGold = lowestPlayer.Gold;
-        int transferAmount = Math.Min(DamageTracker.GoldPenalty, Math.Max(0, currentGold));
+        int transferAmount = Math.Min(DamageTracker.GoldPenalty, currentGold);
 
         if (transferAmount > 0)
         {
+            // Apply gold changes immediately
             lowestPlayer.Gold -= transferAmount;
             highestPlayer.Gold += transferAmount;
 
@@ -77,17 +80,21 @@ public static class BattleEndPatch
                 $"Gold transfer: {lowestPlayer.Name} (damage: {lowestDamage}) lost {transferAmount} gold. " +
                 $"{highestPlayer.Name} (damage: {highestDamage}) gained {transferAmount} gold.");
 
-            // Show floating text above each player character
+            // Store transfer data for the reward screen to display
+            GoldTransferInfo.Pending = new GoldTransferInfo.TransferResult
+            {
+                Loser = lowestPlayer,
+                Winner = highestPlayer,
+                LoserName = lowestPlayer.Name,
+                WinnerName = highestPlayer.Name,
+                TransferAmount = transferAmount,
+                LoserDamage = lowestDamage,
+                WinnerDamage = highestDamage
+            };
+
+            // Show floating text above each player as immediate feedback
             GoldFloatingText.Show(lowestPlayer, -transferAmount, lowestPlayer.Name);
             GoldFloatingText.Show(highestPlayer, transferAmount, highestPlayer.Name);
-
-            // Show a summary banner at the top of the screen
-            Node? sceneRoot = ((Node)lowestPlayer).GetTree()?.CurrentScene;
-            if (sceneRoot != null)
-            {
-                GoldTransferBanner.Show(sceneRoot, lowestPlayer.Name, highestPlayer.Name,
-                    transferAmount, lowestDamage, highestDamage);
-            }
         }
         else
         {
