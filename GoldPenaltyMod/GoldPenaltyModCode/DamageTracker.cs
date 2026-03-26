@@ -103,7 +103,11 @@ public static class DamageTracker
     {
         try
         {
-            if (StateGetter == null) return 1;
+            if (StateGetter == null)
+            {
+                MainFile.Logger.Warn("Cannot determine act: RunManager.State property not found via reflection.");
+                return 1;
+            }
 
             var state = StateGetter.Invoke(RunManager.Instance, null);
             if (state == null) return 1;
@@ -140,8 +144,9 @@ public static class DamageTracker
 
             return 1;
         }
-        catch
+        catch (Exception ex)
         {
+            MainFile.Logger.Warn($"Failed to determine current act via reflection: {ex.Message}");
             return 1;
         }
     }
