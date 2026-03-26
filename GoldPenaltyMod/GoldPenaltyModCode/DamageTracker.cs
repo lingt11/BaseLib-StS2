@@ -1,17 +1,22 @@
+using System.Reflection;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Runs;
 
 namespace GoldPenaltyMod.GoldPenaltyModCode;
 
 /// <summary>
 /// Tracks total damage dealt by each player during a single combat encounter.
 /// Used in multiplayer to determine which player dealt the most/least damage.
+/// Also provides act-based gold penalty amounts (Act 1: 5, Act 2: 10, Act 3: 15).
 /// </summary>
 public static class DamageTracker
 {
     /// <summary>
-    /// Gold amount to transfer from the lowest-damage player to the highest-damage player.
+    /// Reflection accessor for the private RunManager.State property.
     /// </summary>
-    public const int GoldPenalty = 10;
+    private static readonly MethodInfo? StateGetter =
+        AccessTools.PropertyGetter(typeof(RunManager), "State");
 
     /// <summary>
     /// Maps each player instance to their cumulative damage dealt in the current combat.
@@ -88,5 +93,77 @@ public static class DamageTracker
         }
 
         return worst;
+    }
+
+    /// <summary>
+    /// Determines the current act number (1, 2, or 3) using reflection on RunManager.State.
+    /// Returns 1 as the default if the act cannot be determined.
+    /// </summary>
+    public static int GetCurrentActNumber()
+    {
+        try
+        {
+            if (StateGetter == null)
+            {
+                MainFile.Logger.Warn("Cannot determine act: RunManager.State property not found via reflection.");
+                return 1;
+            }
+
+            var state = StateGetter.Invoke(RunManager.Instance, null);
+            if (state == null) return 1;
+
+            var stateType = state.GetType();
+
+            // Try CurrentActIndex property (0-based index)
+            var actIndexProp = AccessTools.Property(stateType, "CurrentActIndex");
+            if (actIndexProp != null)
+            {
+                var indexObj = actIndexProp.GetValue(state);
+                if (indexObj is int index)
+                {
+                    return index + 1; // Convert 0-based to 1-based
+                }
+            }
+
+            // Fallback: try CurrentAct property and determine act number by type name
+            var currentActProp = AccessTools.Property(stateType, "CurrentAct");
+            if (currentActProp != null)
+            {
+                var actModel = currentActProp.GetValue(state);
+                if (actModel != null)
+                {
+                    return actModel.GetType().Name switch
+                    {
+                        "Overgrowth" or "Underdocks" => 1,
+                        "Hive" => 2,
+                        "Glory" => 3,
+                        _ => 1
+                    };
+                }
+            }
+
+            return 1;
+        }
+        catch (Exception ex)
+        {
+            MainFile.Logger.Warn($"Failed to determine current act via reflection: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Returns the gold penalty amount based on the current act/map:
+    /// Act 1 = 5 gold, Act 2 = 10 gold, Act 3 = 15 gold.
+    /// </summary>
+    public static int GetGoldPenaltyForCurrentAct()
+    {
+        int actNumber = GetCurrentActNumber();
+        return actNumber switch
+        {
+            1 => 5,
+            2 => 10,
+            3 => 15,
+            _ => 5
+        };
     }
 }
