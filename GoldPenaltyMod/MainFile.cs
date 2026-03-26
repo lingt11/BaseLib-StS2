@@ -15,6 +15,6 @@ public partial class MainFile : Node
     {
         Harmony harmony = new(ModId);
         harmony.PatchAll();
-        Logger.Info("GoldPenaltyMod initialized: lowest damage player loses 10 gold to highest damage player after each battle.");
+        Logger.Info("GoldPenaltyMod initialized: gold penalty scales by act (Act1: 5, Act2: 10, Act3: 15). Damage tracking includes all sources and block damage, excludes overkill.");
     }
 }

@@ -12,12 +12,13 @@ namespace GoldPenaltyMod.GoldPenaltyModCode.Patches;
 /// Only active in multiplayer mode. After a battle is won, this patch:
 /// 1. Identifies the player who dealt the least total damage
 /// 2. Identifies the player who dealt the most total damage
-/// 3. Deducts 10 gold from the lowest-damage player
-/// 4. Awards 10 gold to the highest-damage player
+/// 3. Deducts gold from the lowest-damage player (amount based on current act)
+/// 4. Awards the same gold to the highest-damage player
 /// 5. Stores transfer data and shows a banner notification
 ///
+/// Gold penalty scales with act progression: Act 1 = 5, Act 2 = 10, Act 3 = 15.
 /// If only one player participated or if all players dealt equal damage, no gold is transferred.
-/// If the lowest-damage player has fewer than 10 gold, only their available gold is transferred.
+/// If the lowest-damage player has fewer gold than the penalty, only their available gold is transferred.
 /// </summary>
 [HarmonyPatch(typeof(CombatManager), nameof(CombatManager.EndCombatInternal))]
 public static class BattleEndPatch
@@ -66,9 +67,12 @@ public static class BattleEndPatch
             return;
         }
 
+        // Gold penalty scales with current act: Act 1 = 5, Act 2 = 10, Act 3 = 15
+        int goldPenalty = DamageTracker.GetGoldPenaltyForCurrentAct();
+
         // Calculate actual transfer amount (cannot take more gold than the player has)
         int currentGold = lowestPlayer.Gold;
-        int transferAmount = Math.Min(DamageTracker.GoldPenalty, currentGold);
+        int transferAmount = Math.Min(goldPenalty, currentGold);
 
         if (transferAmount > 0)
         {
@@ -79,8 +83,10 @@ public static class BattleEndPatch
             lowestPlayer.Gold -= transferAmount;
             highestPlayer.Gold += transferAmount;
 
+            int actNumber = DamageTracker.GetCurrentActNumber();
             MainFile.Logger.Info(
-                $"Gold transfer: {lowestName} (damage: {lowestDamage}) lost {transferAmount} gold. " +
+                $"Gold transfer (Act {actNumber}, penalty: {goldPenalty}): " +
+                $"{lowestName} (damage: {lowestDamage}) lost {transferAmount} gold. " +
                 $"{highestName} (damage: {highestDamage}) gained {transferAmount} gold.");
 
             // Store transfer data for display
